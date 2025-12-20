@@ -3,6 +3,7 @@ use std::process::Command;
 use std::io;
 use std::io::Write;
 use std::env;
+use std::fs::{remove_dir_all, exists};
 
 struct Config {
     prefix: String,
@@ -30,7 +31,7 @@ impl Config {
 
 fn push_arg(conf: &HashMap<String, String>, sets: Vec<Config>, mut arg: Vec<String>, optional: bool) -> Result<Vec<String>, String> {
     let mut ok = true;
-    let mut err = String::from("[ERROR]: Lose config in LINK section in config file <pcm.toml>");
+    let mut err = String::from("[ERROR]: Loss config in the config file");
 
     // 判空和读取并添加配置
     let mut num = 1;
@@ -53,12 +54,12 @@ fn push_arg(conf: &HashMap<String, String>, sets: Vec<Config>, mut arg: Vec<Stri
     if ok || optional { Ok(arg) } else { Err(err) }
 }
 
-pub fn link(config: HashMap<String, HashMap<String, String>>) {
+pub fn link(config: HashMap<String, HashMap<String, String>>) -> Result<(), String> {
     // 获取 LINK 区
     let conf = {
         match config.get("LINK") {
             Some(c) => c,
-            None => { eprintln!("[ERROR]: No LINK section in config file <pcm.toml>"); return; }
+            None => { return Err("No LINK section in config file".to_string()) }
         }
     };
 
@@ -76,22 +77,17 @@ pub fn link(config: HashMap<String, HashMap<String, String>>) {
     ];
 
     // 拼接参数
-    arg = {
-        match push_arg(&conf, sets, arg, false) {
-            Ok(v) => v,
-            Err(e) => { eprintln!("{}", e); return; }
-        }
-    };
+    arg = push_arg(&conf, sets, arg, false)?;
 
     // 检查并执行命令
-    execute(format!("jlink {}", arg.join(" ")));
+    Ok(execute(format!("jlink {}", arg.join(" "))))
 }
 
-pub fn package(config: HashMap<String, HashMap<String, String>>) {
+pub fn package(config: HashMap<String, HashMap<String, String>>) -> Result<(), String> {
     let conf = {
         match config.get("PACKAGE") {
             Some(c) => c,
-            None => { eprintln!("[ERROR]: No LINK section in config file <pcm.toml>"); return; }
+            None => { return Err("No LINK section in config file".to_string()) }
         }
     };
 
@@ -100,12 +96,7 @@ pub fn package(config: HashMap<String, HashMap<String, String>>) {
         vec!["type", "input", "jar", "main-class", "project-name", "version", "vendor", "runtime-image", "dest"]
     ).unwrap();
 
-    let mut arg = {
-        match push_arg(&conf, sets, vec![], false) {
-            Ok(v) => v,
-            Err(e) => { eprintln!("{}", e); return; }
-        }
-    };
+    let mut arg = push_arg(&conf, sets, vec![], false)?;
 
     let optional_sets = Config::new(
         vec!["--description", "--copyright", "--icon", "--java-options"],
@@ -116,14 +107,59 @@ pub fn package(config: HashMap<String, HashMap<String, String>>) {
     arg = push_arg(&conf, optional_sets, arg, true).unwrap();
 
     // 检查并执行命令
-    execute(format!("jpackage {}", arg.join(" ")));
+    Ok(execute(format!("jpackage {}", arg.join(" "))))
+}
+
+pub fn clean(config: HashMap<String, HashMap<String, String>>) -> Result<(), String> {
+    const LEN: usize = 2;
+    let set: [(String, String); LEN] = [
+        ("LINK".to_string(), "output".to_string()),
+        ("PACKAGE".to_string(), "dest".to_string()),
+    ];
+
+    let mut is_cleaned = false;
+    for i in 0..LEN {
+        let (section, key) = &set[i];
+
+        match config.get(section.as_str()) {
+            Some(m) => {
+                // 在其中找到 output 值
+                match m.get(key.as_str()) {
+                    Some(o) => {
+                        match remove_dir_all(o) {
+                            Err(e) => {
+                                if exists(o).unwrap() {
+                                    eprintln!("[ERROR]: Failed to remove <{}>\n\t{}", o, e);
+                                }
+                            }
+                            Ok(_) => {
+                                is_cleaned = true;
+                                println!("[INFO]: Removed {}", o);
+                            }
+                        }
+                    },
+                    None => {
+                        return Err(format!("No {} in {} section in config file", key, section))
+                    }
+                }
+            },
+            None => {
+                return Err(format!("No {} section in config file", section))
+            }
+        }
+    }
+
+    if !is_cleaned {
+        println!("Nothing was cleaned.");
+    }
+
+    Ok(())
 }
 
 fn execute(cmd: String) {
     let os = env::consts::OS;
     let shell = if os == "windows" { "cmd" } else { "sh" };
     let arg = if os == "windows" { "/c" } else { "-c" };
-    let cmd = cmd.replace("\"", "\\\"");
 
     println!("\n[INFO]: Loaded config file <pcm.toml>");
     println!("[INFO]: It's going to execute command:");

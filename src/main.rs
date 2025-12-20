@@ -15,7 +15,7 @@ fn main() {
     let config_path = {
         match args.get(1) {
             Some(path) => path,
-            None => "pcm.toml"
+            None => "jpc.toml"
         }
     };
 
@@ -23,25 +23,31 @@ fn main() {
         "-v" | "--version" => { print_version() }
         "-h" | "--help" => { print_usage() }
         "init" => { config_manager::init(config_path) }
+
         "link" => { executor::link(config_manager::load(config_path).unwrap_or_else(|e| {
-            eprintln!("{}", e); std::process::exit(1);
-        })) }
+            eprintln!("{}", e);
+            std::process::exit(1);
+        })).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e)) }
+
         "package" => { executor::package(config_manager::load(config_path).unwrap_or_else(|e| {
             eprintln!("{}", e); std::process::exit(1);
-        })) }
+        })).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e)) }
+
+        "clean" => { executor::clean(config_manager::load(config_path).unwrap_or_else(|e| {
+            eprintln!("{}", e); std::process::exit(1);
+        })).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e)) }
+
         _ => { print_usage() }
     }
 }
 
 fn print_version() {
-    println!("packman — A tool to pack java application");
-    println!("version: :: {} ::", env!("CARGO_PKG_VERSION"));
-    println!("@author: Jiafei");
-    println!("@email: cxkctrl1303@hotmail.com");
+    println!(":: java-packer [jpc] ::");
+    println!("(v{})", env!("CARGO_PKG_VERSION"));
 }
 
 fn print_usage() {
-    println!("Usage: pcm <command> [config-path]");
+    println!("Usage: jpc <command> [config-path]");
     println!("<general>");
     println!("  -h | --help : print this message");
     println!("  -v | --version : print version information");
