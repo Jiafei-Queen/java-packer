@@ -107,38 +107,42 @@ pub fn init(path: &str) {
 
 fn get_content() -> &'static str {
 r#"[LINK]
+default-arg = "--no-header-files --no-man-pages --strip-debug"
+
 # use ':' to separate path on unix-like
 # use ';' to separate path on windows
 module-path = "$JAVA_HOME/jmods:$JFX_HOME"
 
 # use ',' without space to separate modules
-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
+add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
 # 0,1,2 only
-compress-level = "2"
+compress = "2"
 output = "runtime"
 
 [PACKAGE]
+name = "example"
+
 # general: app-image
 # linux: deb, rpm
 # macos: dmg, pkg
 # windows: exe, msi
 type = "app-image"
-# if jar-path is 'target/demo-0.0.1.jar'
-input = "target"
-jar = "demo-0.0.1.jar"
+
+main-jar = "demo-1.0.0.jar"
+main-class = "com.example.demo.Main"
+app-version = "1.0.0"
 
 runtime-image = "runtime"
-project-name = "example"
-main-class = "com.example.demo.Main"
-# use '"' to wrap the value if it contains space
-version = "0.0.1"
-vendor = "'0.0.1 Copyright (C) 2025-forever example.com'"
+input = "target"
+dest = "dist"
+
+vendor = "example.com"
+
 # these options are optional
 # description = "Just a Example"
-# copyright = "0.0.1 Copyright (C) 2025-forever"
-# icon-path = "src/main/resources/favicon.png"
-# java-options = "-Xmx128m"
+# copyright = "'1.0.0 Copyright (C) 2024 example.com'"
+# icon = "favicon.png"
+# java-options = "'-Xmx64m -Xmx128m'"
 
-dest = "dist"
 "#
 }
