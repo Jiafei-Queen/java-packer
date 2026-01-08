@@ -2,7 +2,9 @@ use crate::data::Toml;
 use crate::data::OS;
 use fs_extra::dir::{copy, CopyOptions};
 use std::fs;
-use std::os::unix::fs::PermissionsExt; // 确保已导入
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     // 获得 CROSS-Section
@@ -71,6 +73,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
             }
 
             // 添加脚本运行权限
+            #[cfg(unix)]
             match fs::set_permissions(&script_path, fs::Permissions::from_mode(0o755)) {
                 Err(e) => return Err(format!("Failed to set script file permissions: {}", e)),
                 Ok(_) => {}
