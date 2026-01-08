@@ -1,1 +1,9 @@
 /target
+jpc.toml
+
+#### IDE ####
+.idea
+.vscode
+
+#### macOS ####
+.DS_Store

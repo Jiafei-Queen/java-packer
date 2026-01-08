@@ -1,1 +1,0 @@
-/Users/jiafei/Code-projects/RustProjects/packman/target/release/pcm: /Users/jiafei/Code-projects/RustProjects/packman/src/config_manager.rs /Users/jiafei/Code-projects/RustProjects/packman/src/executor.rs /Users/jiafei/Code-projects/RustProjects/packman/src/main.rs
