@@ -1,5 +1,6 @@
 /target
 jpc.toml
+*.jar
 
 #### IDE ####
 .idea
