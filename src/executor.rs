@@ -2,7 +2,6 @@ use crate::data::*;
 use std::process::Command;
 use std::io;
 use std::io::Write;
-use std::env;
 
 pub static mut QUIET: bool = false;
 
@@ -14,7 +13,7 @@ pub fn link(toml: Toml) -> Result<(), String>{
         }
     };
 
-    let mut cmd= vec!["jlink".to_string()];
+    let mut cmd= Vec::new();
     for (k, v) in sets {
         if k == "default-arg" {
             for a in v.split(" ") {
@@ -27,7 +26,7 @@ pub fn link(toml: Toml) -> Result<(), String>{
         cmd.push(v.to_string());
     }
 
-    Ok(execute(cmd))
+    Ok(execute("jlink".to_string(), cmd))
 }
 
 pub fn package(toml: Toml) -> Result<(), String> {
@@ -38,25 +37,20 @@ pub fn package(toml: Toml) -> Result<(), String> {
         }
     };
 
-    let mut cmd= vec!["jpackage".to_string()];
+    let mut cmd= Vec::new();
     for (k, v) in sets {
         cmd.push(format!("--{}", k));
         cmd.push(v.to_string());
     }
 
-    Ok(execute(cmd))
+    Ok(execute("jpackage".to_string(), cmd))
 }
 
-fn execute(cmd: Vec<String>) {
-    let os = env::consts::OS;
-    let shell = if os == "windows" { "cmd" } else { "sh" };
-    let arg = if os == "windows" { "/c" } else { "-c" };
-
+fn execute(program: String, args: Vec<String>) {
     if !unsafe { QUIET } {
-        println!("\n[INFO]: Loaded config file <pcm.toml>");
         println!("[INFO]: It's going to execute command:");
         println!("=============================================================");
-        println!("{} {} {}", shell, arg, cmd.join(" "));
+        println!("{} {}", program, args.join(" "));
         println!("=============================================================");
         print!("> Do you want to continue? (y/n): ");
         io::stdout().flush().unwrap();
@@ -68,5 +62,5 @@ fn execute(cmd: Vec<String>) {
         } else { println!("\n[INFO]: Cancelled.\n"); return; };
     }
 
-    Command::new(shell).arg(arg).arg(cmd.join(" ")).status().unwrap();
+    Command::new(program).args(args).status().unwrap();
 }

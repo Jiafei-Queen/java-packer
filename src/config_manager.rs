@@ -22,7 +22,7 @@ fn format_err(reason: &str, count: Option<usize>, line: Option<&str>, path: &str
     };
 
     format!(
-        "[ERROR]: Failed to load config file <{}>: {}{}",
+        "Failed to load config file <{}>: {}{}",
         path, line_print, reason
     )
 }
@@ -111,7 +111,7 @@ default-arg = "--no-header-files --no-man-pages --strip-debug"
 
 # use ':' to separate path on unix-like
 # use ';' to separate path on windows
-module-path = "$JAVA_HOME/jmods:$JFX_HOME"
+module-path = "/usr/lib/jvm/temurin-21.0.9+10-jdk-amd64/jmods:/opt/javafx-jmods-21.0.9"
 
 # use ',' without space to separate modules
 add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
@@ -142,7 +142,12 @@ vendor = "example.com"
 # description = "Just a Example"
 # copyright = "'1.0.0 Copyright (C) 2024 example.com'"
 # icon = "favicon.png"
-# java-options = "'-Xmx64m -Xmx128m'"
+# java-options = "-Xmx64m\ -Xmx128m"
+
+[CROSS]
+output = "example-0.1.0-linux"
+jar = "target/example-0.1.0.jar"
+jre = "/usr/lib/jvm/temurin-21.0.9+10-jdk-amd64"
 
 "#
 }

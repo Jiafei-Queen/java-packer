@@ -2,10 +2,11 @@ use crate::data::*;
 use std::fs::*;
 
 pub fn clean(config: Toml) -> Result<(), String> {
-    const LEN: usize = 2;
+    const LEN: usize = 3;
     let set: [(String, String); LEN] = [
         ("LINK".to_string(), "output".to_string()),
         ("PACKAGE".to_string(), "dest".to_string()),
+        ("CROSS".to_string(), "output".to_string())
     ];
 
     let mut is_cleaned = false;
