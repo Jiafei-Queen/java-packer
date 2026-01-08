@@ -2,7 +2,13 @@ use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::io::Write;
+use crate::data::{Set, Toml};
 
+/// 格式化错误信息
+/// - reason: 错误信息
+/// - count: （是否输出）错误行号
+/// - line:  （是否输出）错误行
+/// - path:   配置文件路径
 fn format_err(reason: &str, count: Option<usize>, line: Option<&str>, path: &str) -> String {
     const RESET: &str = "\x1b[0m";
     const BOLD: &str = "\x1b[1m";
@@ -21,7 +27,8 @@ fn format_err(reason: &str, count: Option<usize>, line: Option<&str>, path: &str
     )
 }
 
-pub fn load(path: &str) -> Result<HashMap<String, HashMap<String, String>>, String> {
+/// 加载配置文件
+pub fn load(path: &str) -> Result<Toml, String> {
     // 尝试读取配置文件
     let content = fs::read_to_string(path)
         .map_err(|_| format_err("No such file", None, None, path))?;
@@ -30,9 +37,9 @@ pub fn load(path: &str) -> Result<HashMap<String, HashMap<String, String>>, Stri
     let lines: Vec<&str> = content.lines().collect();
 
     // 变量
-    let mut map: HashMap<String, HashMap<String, String>> = HashMap::new();
+    let mut map: Toml = HashMap::new();
     let mut current_section = String::new();
-    let mut conf: HashMap<String, String> = HashMap::new();
+    let mut sets: Set = HashMap::new();
 
     // 遍历 字符串向量
     let mut count: usize = 0;
@@ -48,8 +55,8 @@ pub fn load(path: &str) -> Result<HashMap<String, HashMap<String, String>>, Stri
         if line.starts_with('[') && line.ends_with(']') {
             // 写入上一个 section
             if !current_section.is_empty() {
-                map.insert(current_section.clone(), conf.clone());
-                conf.clear();
+                map.insert(current_section.clone(), sets.clone());
+                sets.clear();
             }
             current_section = line[1..line.len()-1].to_string();
             continue;
@@ -64,18 +71,19 @@ pub fn load(path: &str) -> Result<HashMap<String, HashMap<String, String>>, Stri
             return Err(format_err("Invalid key=\"value\"", Some(count), Some(line), path));
         }
 
-        conf.insert(parts[0].trim().to_string(),
+        sets.insert(parts[0].trim().to_string(),
                     parts[1].trim()[1..parts[1].trim().len()-1].to_string());
     }
 
     // 插入最后一节
     if !current_section.is_empty() {
-        map.insert(current_section, conf);
+        map.insert(current_section, sets);
     }
 
     Ok(map)
 }
 
+/// 初始化配置文件
 pub fn init(path: &str) {
     if fs::exists(path).unwrap() {
         println!("[WARNING]: Config file <{}> already existed", path);

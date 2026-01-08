@@ -4,30 +4,7 @@ use std::io;
 use std::io::Write;
 use std::env;
 use std::fs::{remove_dir_all, exists};
-
-struct Config {
-    prefix: String,
-    key: String,
-}
-
-impl Config {
-    fn new(prefix: Vec<&str>, keys: Vec<&str>) -> Result<Vec<Self>, String> {
-        if prefix.is_empty() || keys.is_empty() {
-            return Err("prefix and keys must not be empty".to_string());
-        }
-
-        if prefix.len() != keys.len() {
-            return Err("prefix and keys must have the same length".to_string());
-        }
-
-        let mut vec: Vec<Self> = Vec::new();
-        for i in 0..keys.len() {
-            vec.push(Self { prefix: prefix[i].to_string(), key: keys[i].to_string() });
-        }
-
-        Ok(vec)
-    }
-}
+use crate::data::*;
 
 fn push_arg(conf: &HashMap<String, String>, sets: Vec<Config>, mut arg: Vec<String>, optional: bool) -> Result<Vec<String>, String> {
     let mut ok = true;
@@ -64,7 +41,7 @@ pub fn link(config: HashMap<String, HashMap<String, String>>) -> Result<(), Stri
     };
 
     // 初始化设置
-    let sets = Config::new(
+    let sets = Config::from_twin_vec(
         vec!["--module-path", "--add-modules", "--compress", "--output"],
         vec!["module-path", "modules", "compress-level", "output"]
     ).unwrap();
@@ -91,14 +68,14 @@ pub fn package(config: HashMap<String, HashMap<String, String>>) -> Result<(), S
         }
     };
 
-    let sets = Config::new(
+    let sets = Config::from_twin_vec(
         vec!["--type", "--input", "--main-jar", "--main-class", "--name", "--app-version", "--vendor", "--runtime-image", "--dest"],
         vec!["type", "input", "jar", "main-class", "project-name", "version", "vendor", "runtime-image", "dest"]
     ).unwrap();
 
     let mut arg = push_arg(&conf, sets, vec![], false)?;
 
-    let optional_sets = Config::new(
+    let optional_sets = Config::from_twin_vec(
         vec!["--description", "--copyright", "--icon", "--java-options"],
         vec!["description", "copyright", "icon-path", "java-options"]
     ).unwrap();
