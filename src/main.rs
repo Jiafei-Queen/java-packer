@@ -9,7 +9,7 @@ use config_manager::*;
 use executor::*;
 use clean::clean;
 use cross::cross;
-use crate::data::OS;
+use crate::data::{Toml, OS};
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -33,39 +33,36 @@ fn main() {
         }
     }
 
+    // 提前解析，避免 config 提前传来错误
     match command.as_str() {
-        "-v" | "--version" => { print_version() }
-        "-h" | "--help" => { print_usage() }
-        "init" => { init(&conf) }
+        "-v" | "--version" => { print_version(); return; }
+        "-h" | "--help" => { print_usage(); return;}
+        "init" => { init(&conf); return; }
+        _ => {}
+    }
 
-        "link" => { link(load(&conf).unwrap_or_else(|e| {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        })).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e)) }
+    let config = load(&conf).unwrap_or_else(|e| {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    });
 
-        "package" => { package(load(&conf).unwrap_or_else(|e| {
-            eprintln!("{}", e); std::process::exit(1);
-        })).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e)) }
+    parse_cmd(command, config).unwrap_or_else(|e| {
+        eprintln!("[ERROR]: {}", e);
+    })
+}
 
-        "clean" => { clean(load(&conf).unwrap_or_else(|e| {
-            eprintln!("{}", e); std::process::exit(1);
-        })).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e)) }
-
-        "cross-unix" => { cross(&load(&conf).unwrap_or_else(|e| {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        }), OS::Unix).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e))}
-
-        "cross-win" => { cross(&load(&conf).unwrap_or_else(|e| {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        }), OS::Windows).unwrap_or_else(|e| eprintln!("[ERROR]: {}", e))}
-
-        _ => { print_usage() }
+fn parse_cmd(cmd: &str, config: Toml) -> Result<(), String>{
+    match cmd {
+        "link" => { Ok(link(config)?) }
+        "package" => { Ok(package(config)?) }
+        "clean" => { Ok(clean(config)?) }
+        "cross-unix" => { Ok(cross(&config, OS::Unix)?) }
+        "cross-win" => { Ok(cross(&config, OS::Windows)?) }
+        _ => Ok(print_usage())
     }
 }
 
-fn print_version() {
+        fn print_version() {
     println!(":: java-packer [jpc] :: (v{})", env!("CARGO_PKG_VERSION"));
 }
 
