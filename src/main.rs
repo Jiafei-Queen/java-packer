@@ -27,7 +27,7 @@ fn main() {
         if skip { skip=false; continue; }
 
         match args[i].as_str() {
-            "-q" | "--quiet" => unsafe { QUIET = true },
+            "-q" | "--quiet" => QUIET.set(true),
             "-c" | "--config" => { conf = args[i+1].clone(); skip = true; }
             _ => { print_usage(); return; }
         }

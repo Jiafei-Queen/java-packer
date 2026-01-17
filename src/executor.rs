@@ -1,9 +1,10 @@
+use std::cell::Cell;
 use crate::data::*;
 use std::process::Command;
 use std::io;
 use std::io::Write;
 
-pub static mut QUIET: bool = false;
+pub const QUIET: Cell<bool> = Cell::new(false);
 
 pub fn link(toml: Toml) -> Result<(), String>{
     let sets = match toml.get("LINK") {
@@ -47,7 +48,7 @@ pub fn package(toml: Toml) -> Result<(), String> {
 }
 
 fn execute(program: String, args: Vec<String>) {
-    if !unsafe { QUIET } {
+    if QUIET.get() == false {
         println!("[INFO]: It's going to execute command:");
         println!("=============================================================");
         println!("{} {}", program, args.join(" "));
