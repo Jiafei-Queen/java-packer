@@ -62,7 +62,7 @@ fn parse_cmd(cmd: &str, config: Toml) -> Result<(), String>{
     }
 }
 
-        fn print_version() {
+fn print_version() {
     println!(":: java-packer [jpc] :: (v{})", env!("CARGO_PKG_VERSION"));
 }
 

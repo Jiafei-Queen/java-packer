@@ -14,7 +14,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     };
 
     // 获得值
-    let keys = vec!["output", "jar", "jre"];
+    let keys = vec!["output", "input", "main-jar", "runtime-image"];
     let mut value: Vec<String> = Vec::new();
     for k in keys {
         match sets.get(k) {
@@ -24,24 +24,26 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     }
 
     // 提取参数
-    let (output, jar, jre) = (value[0].clone(), value[1].clone(), value[2].clone());
+    let (output, input, jar, jre)
+        = (value[0].clone(), value[1].clone(), value[2].clone(), value[3].clone());
 
     // 创建 输出根目录
     match fs::create_dir(&output) {
-        Err(e) => return Err(format!("Failed to create OUTPUT directory: {}", e)),
+        Err(e) => return Err(format!("Failed to create OUTPUT directory <{}>: {}",output , e)),
         Ok(_) => {}
     }
 
     // 创建 TARGET 目录
     let target_dir = format!("{}/target", &output);
     match fs::create_dir(&target_dir) {
-        Err(e) => return Err(format!("Failed to create TARGET directory: {}", e)),
+        Err(e) => return Err(format!("Failed to create TARGET directory <{}>: {}",target_dir , e)),
         Ok(_) => {}
     }
 
     // 复制 JAR
-    let jar_path = format!("{}/{}", target_dir, &jar);
-    match fs::copy(&jar, jar_path) {
+    let jar_path = format!("{}/{}", input, &jar);
+    let jar_output = format!("{}/{}", target_dir, &jar);
+    match fs::copy(&jar_path, jar_output) {
         Err(e) => return Err(format!("Failed to copy JAR file: {}", e)),
         Ok(_) => {}
     }

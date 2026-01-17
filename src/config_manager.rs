@@ -144,7 +144,8 @@ default-arg = "--no-header-files --no-man-pages --strip-debug"
 # use ':' to separate path on unix-like
 # use ';' to separate path on windows
 # contain VAR between twin "$"
-module-path = "$JAVA_HOME$/jmods:$JFX_HOME$"
+module-path = "$JAVA_HOME$/jmods"
+module-path = "$JFX_HOME$"
 
 # use ',' without space to separate modules
 add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
@@ -179,8 +180,9 @@ vendor = "example.com"
 
 [CROSS]
 output = "example-0.1.0-linux"
-jar = "target/example-0.1.0.jar"
-jre = "$JAVA_HOME$"
+input = "target"
+main-jar = "example-0.1.0.jar"
+runtime-image = "$JAVA_HOME$"
 
 "#
 }
