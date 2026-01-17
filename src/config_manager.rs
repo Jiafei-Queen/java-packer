@@ -80,7 +80,34 @@ pub fn load(path: &str) -> Result<Toml, String> {
         map.insert(current_section, sets);
     }
 
-    Ok(map)
+    Ok(parse_var(map))
+}
+
+fn parse_var(toml: Toml) -> Toml {
+    if toml.get("VAR").is_none() { return toml; }
+    let mut output_toml = Toml::new();
+
+    // 遍历 其他 Section
+    for (section, sets) in &toml {
+        if section.as_str() == "VAR" { continue; }
+        let mut output_sets = HashMap::new();
+
+        // 遍历此 Section 中的 Sets
+        for (k, v) in sets {
+            let mut replaced = v.clone();
+
+            // 没必要因为这种代码感到羞耻，很多看似高级的代码底层和这个差不多
+            for (var, content) in &toml["VAR"] {
+                replaced = replaced.replace(format!("${}$", var).as_str(), content);
+            }
+
+            output_sets.insert(k.clone(), replaced);
+        }
+
+        output_toml.insert(section.clone(), output_sets);
+    }
+
+    output_toml
 }
 
 /// 初始化配置文件
@@ -106,12 +133,18 @@ pub fn init(path: &str) {
 }
 
 fn get_content() -> &'static str {
-r#"[LINK]
+r#"[VAR]
+JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-21-aarch64.jdk/Contents/Home"
+JFX_HOME="/opt/javafx-jmods-21-macOS-arm64"
+JAR = "example-1.0.0.jar"
+
+[LINK]
 default-arg = "--no-header-files --no-man-pages --strip-debug"
 
 # use ':' to separate path on unix-like
 # use ';' to separate path on windows
-module-path = "/usr/lib/jvm/temurin-21.0.9+10-jdk-amd64/jmods:/opt/javafx-jmods-21.0.9"
+# contain VAR between twin "$"
+module-path = "$JAVA_HOME$/jmods:$JFX_HOME$"
 
 # use ',' without space to separate modules
 add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
@@ -128,7 +161,7 @@ name = "example"
 # windows: exe, msi
 type = "app-image"
 
-main-jar = "demo-1.0.0.jar"
+main-jar = "$JAR$"
 main-class = "com.example.demo.Main"
 app-version = "1.0.0"
 
@@ -142,12 +175,12 @@ vendor = "example.com"
 # description = "Just a Example"
 # copyright = "'1.0.0 Copyright (C) 2024 example.com'"
 # icon = "favicon.png"
-# java-options = "-Xmx64m\ -Xmx128m"
+# java-options = "'-Xmx64m -Xmx128m'"
 
 [CROSS]
 output = "example-0.1.0-linux"
 jar = "target/example-0.1.0.jar"
-jre = "/usr/lib/jvm/temurin-21.0.9+10-jdk-amd64"
+jre = "$JAVA_HOME$"
 
 "#
 }
