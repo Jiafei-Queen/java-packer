@@ -1,10 +1,11 @@
 /target
 jpc.toml
 *.jar
+/test
 
 #### IDE ####
-.idea
-.vscode
+/.idea
+/.vscode
 
 #### macOS ####
 .DS_Store
