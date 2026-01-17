@@ -43,8 +43,8 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     // 复制 JAR
     let jar_path = format!("{}/{}", input, &jar);
     let jar_output = format!("{}/{}", target_dir, &jar);
-    match fs::copy(&jar_path, jar_output) {
-        Err(e) => return Err(format!("Failed to copy JAR file: {}", e)),
+    match fs::copy(&jar_path, &jar_output) {
+        Err(e) => return Err(format!("Failed to copy JAR file <{} -> {}>: {}", jar_path, jar_output, e)),
         Ok(_) => {}
     }
 
@@ -60,8 +60,8 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
 
     // 复制 JRE 到 RUNTIME
     let runtime_dir = format!("{}/runtime", &output);
-    match copy(&jre, runtime_dir, &options) {
-        Err(e) => return Err(format!("Failed to copy JRE: {}", e)),
+    match copy(&jre, &runtime_dir, &options) {
+        Err(e) => return Err(format!("Failed to copy JRE <{} -> {}>: {}", jre, runtime_dir, e)),
         Ok(_) => {}
     }
 
@@ -70,7 +70,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
             // 写入运行脚本
             let script_path = format!("{}/run.sh", output);
             match fs::write(&script_path, get_unix_content(&jar.as_str())) {
-                Err(e) => return Err(format!("Failed to write script file: {}", e)),
+                Err(e) => return Err(format!("Failed to write script file <{}>: {}", script_path, e)),
                 Ok(_) => {}
             }
 
@@ -84,7 +84,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
         OS::Windows => {
             let script_path = format!("{}/run.bat", output);
             match fs::write(&script_path, get_windows_content(&jar.as_str())) {
-                Err(e) => return Err(format!("Failed to write batch file: {}", e)),
+                Err(e) => return Err(format!("Failed to write batch file <{}>: {}", script_path, e)),
                 Ok(_) => {}
             }
         }
