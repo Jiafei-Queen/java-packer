@@ -10,7 +10,7 @@ checksum = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c"
 
 [[package]]
 name = "jpc"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "fs_extra",
 ]
