@@ -9,7 +9,7 @@ use config_manager::*;
 use executor::*;
 use clean::clean;
 use cross::cross;
-use crate::data::{Toml, OS};
+use crate::data::{Toml, OS, QUIET};
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();

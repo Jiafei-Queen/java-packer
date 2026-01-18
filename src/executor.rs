@@ -4,8 +4,6 @@ use std::process::Command;
 use std::io;
 use std::io::Write;
 
-pub const QUIET: Cell<bool> = Cell::new(false);
-
 pub fn link(toml: Toml) -> Result<(), String>{
     let sets = match toml.get("LINK") {
         Some(s) => s,
