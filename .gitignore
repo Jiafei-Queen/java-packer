@@ -2,6 +2,7 @@
 jpc.toml
 *.jar
 /test
+*.7z
 
 #### IDE ####
 /.idea
