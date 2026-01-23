@@ -35,9 +35,7 @@ pub fn clean(config: Toml) -> Result<(), String> {
                     }
                 }
             },
-            None => {
-                return Err(format!("No {} section in config file", section))
-            }
+            None => {}
         }
     }
 
