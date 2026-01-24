@@ -106,7 +106,7 @@ fn get_unix_content(jar: &str) -> String {
 fn get_windows_content(jar: &str) -> String {
     format!(
         "@echo off\n\
-         cd /d \"%～dp0\"\n\
+         cd /d \"%~dp0\"\n\
          \n\
          .\\runtime\\bin\\java.exe -jar .\\target\\{}\n",
         jar
