@@ -98,7 +98,7 @@ fn get_unix_content(jar: &str) -> String {
         "#!/bin/sh\n\
          SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\n\
          \n\
-         ${{SCRIPT_DIR}}/runtime/bin/java -jar \"${{SCRIPT_DIR}}/target/{}\"\n",
+         $SCRIPT_DIR/runtime/bin/java -jar \"$SCRIPT_DIR/target/{}\"\n",
         jar
     )
 }
