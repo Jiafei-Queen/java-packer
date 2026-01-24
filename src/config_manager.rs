@@ -71,6 +71,10 @@ pub fn load(path: &str) -> Result<Toml, String> {
             return Err(format_err("Invalid key=\"value\"", Some(count), Some(line), path));
         }
 
+        if sets.contains_key(parts[0].trim()) {
+            return Err(format_err("Key already exists", Some(count), Some(line), path));
+        }
+
         sets.insert(parts[0].trim().to_string(),
                     parts[1].trim()[1..parts[1].trim().len()-1].to_string());
     }
