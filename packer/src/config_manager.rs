@@ -138,8 +138,8 @@ pub fn init(path: &str) {
 
 fn get_content() -> &'static str {
 r#"[VAR]
-JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-21-aarch64.jdk/Contents/Home"
-JFX_HOME="/opt/javafx-jmods-21-macOS-arm64"
+JAVA_HOME = "/Library/Java/JavaVirtualMachines/temurin-21-aarch64.jdk/Contents/Home"
+JFX_HOME = "/opt/javafx-jmods-21-macOS-arm64"
 JAR = "example-1.0.0.jar"
 
 [LINK]
@@ -148,8 +148,7 @@ default-arg = "--no-header-files --no-man-pages --strip-debug"
 # use ':' to separate path on unix-like
 # use ';' to separate path on windows
 # contain VAR between twin "$"
-module-path = "$JAVA_HOME$/jmods"
-module-path = "$JFX_HOME$"
+module-path = "$JAVA_HOME$/jmods:$JFX_HOME$"
 
 # use ',' without space to separate modules
 add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
@@ -187,6 +186,7 @@ output = "example-0.1.0-linux"
 input = "target"
 main-jar = "example-0.1.0.jar"
 runtime-image = "$JAVA_HOME$"
+output-exec = "run.exe"
 
 "#
 }
