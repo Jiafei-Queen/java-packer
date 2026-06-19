@@ -1,6 +1,9 @@
+#![windows_subsystem = "windows"]
+
 use std::env;
 use std::fs;
 use std::process::Command;
+use std::os::windows::process::CommandExt;
 
 fn main() {
     let exe_dir = env::current_exe()
@@ -23,11 +26,15 @@ fn main() {
         })
         .expect("No JAR file found in target directory");
 
-    println!("Launching {}", jar_path.display());
+    let mut cmd = Command::new("java");
+    cmd.arg("-jar").arg(&jar_path);
 
-    Command::new("javaw")
-        .arg("-jar")
-        .arg(&jar_path)
-        .status()
-        .unwrap();
+    #[cfg(target_os = "windows")]
+    {
+        // 0x00000008 是 DETACHED_PROCESS 标志位
+        // 它会让 Java 脱离 Rust 的无窗口环境，完全由 Windows 根据 Java 的类型来决定：
+        cmd.creation_flags(0x00000008);
+    }
+
+    cmd.status().unwrap();
 }
