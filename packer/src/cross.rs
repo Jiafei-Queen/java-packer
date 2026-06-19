@@ -14,7 +14,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     };
 
     // 获得值
-    let keys = vec!["output", "input", "main-jar", "runtime-image"];
+    let keys = vec!["output", "input", "main-jar", "runtime-image", "output-exec"];
     let mut value: Vec<String> = Vec::new();
     for k in keys {
         match sets.get(k) {
@@ -24,8 +24,8 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     }
 
     // 提取参数
-    let (output, input, jar, jre)
-        = (value[0].clone(), value[1].clone(), value[2].clone(), value[3].clone());
+    let (output, input, jar, jre, exec)
+        = (value[0].clone(), value[1].clone(), value[2].clone(), value[3].clone(), value[4].clone());
 
     // 创建 输出根目录
     match fs::create_dir(&output) {
@@ -68,7 +68,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
     match platform {
         OS::Unix => {
             // 写入运行脚本
-            let script_path = format!("{}/run.sh", output);
+            let script_path = format!("{}/{}", output, exec);
             match fs::write(&script_path, get_unix_content(&jar.as_str())) {
                 Err(e) => return Err(format!("Failed to write script file <{}>: {}", script_path, e)),
                 Ok(_) => {}
@@ -82,9 +82,9 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
             }
         }
         OS::Windows => {
-            let script_path = format!("{}/run.bat", output);
-            match fs::write(&script_path, get_windows_content(&jar.as_str())) {
-                Err(e) => return Err(format!("Failed to write batch file <{}>: {}", script_path, e)),
+            let script_path = format!("{}/{}.exe", output, exec);
+            match fs::write(&script_path, include_bytes!("../../target/x86_64-pc-windows-gnu/release/launcher.exe"))  {
+                Err(e) => return Err(format!("Failed to write executable file <{}>: {}", script_path, e)),
                 Ok(_) => {}
             }
         }
@@ -99,16 +99,6 @@ fn get_unix_content(jar: &str) -> String {
          SCRIPT_DIR=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\n\
          \n\
          $SCRIPT_DIR/runtime/bin/java -jar \"$SCRIPT_DIR/target/{}\"\n",
-        jar
-    )
-}
-
-fn get_windows_content(jar: &str) -> String {
-    format!(
-        "@echo off\n\
-         cd /d \"%~dp0\"\n\
-         \n\
-         .\\runtime\\bin\\java.exe -jar .\\target\\{}\n",
         jar
     )
 }

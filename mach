@@ -1,0 +1,3 @@
+#!/bin/sh
+cargo build --release --target x86_64-pc-windows-gnu -p win-launcher
+cargo build --release $1 -p packer

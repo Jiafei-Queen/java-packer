@@ -1,0 +1,7 @@
+[package]
+name = "win-launcher"
+edition = "2024"
+
+[[bin]]
+name = "launcher"
+path = "src/main.rs"

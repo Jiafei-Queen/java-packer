@@ -20,7 +20,7 @@ fn main() {
         }
     };
 
-    let mut conf = String::from("jpc.toml");
+    let mut conf = String::from("jpc.ini");
 
     let mut skip = false;
     for i in 1..args.len() {

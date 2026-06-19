@@ -1,7 +1,16 @@
 [package]
-name = "jpc"
+name = "java-packer"
 version = "0.6.3"
 edition = "2024"
 
-[dependencies]
-fs_extra = "1.3.0"
+[workspace]
+resolver = "2"
+
+members = [
+    "win-launcher",
+    "packer"
+]
+
+[[bin]]
+name = "jpc"
+path = ""
