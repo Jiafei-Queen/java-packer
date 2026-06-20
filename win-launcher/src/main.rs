@@ -26,7 +26,9 @@ fn main() {
         })
         .expect("No JAR file found in target directory");
 
-    let mut cmd = Command::new("java");
+    let java_path = exe_dir.join("runtime/bin/java.exe");
+
+    let mut cmd = Command::new(java_path.display().to_string());
     cmd.arg("-jar").arg(&jar_path);
 
     #[cfg(target_os = "windows")]
