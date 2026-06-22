@@ -10,9 +10,19 @@
 
 ## 依赖
 
+### 对于 link/package 功能
+
+（调用 jlink, jpackage 生成简化 JRE 和 应用 bundle）
+
 - 已安装 JDK 14+，并确保 `jlink` / `jpackage` 在 `PATH` 中。
 - Windows 打包 `.msi` 仍需要 WiX Toolset（`jpackage` 的要求）。
 - macOS 打包 `.pkg` / `.dmg` 可能需要开发者证书（`jpackage` 的要求）。
+
+### 对于 cross
+
+（生成绿色 Java 应用目录）
+
+- 至少需要在配置文件中配置一个 JRE 目录
 
 ## 安装
 
@@ -32,21 +42,21 @@ Release 页面：<https://github.com/Jiafei-Queen/java-packer/releases>
 
 1) 生成配置
 ```bash
-jpc init
+jpc init  # 生成模板配置文件
 ```
 
-2) 编辑 `jpc.toml`
+2) 编辑 `jpc.ini`
 
 3) 执行
 ```bash
-jpc link
-jpc package
+jpc link      # 根据配置文件生成裁剪后的 JRE
+jpc package   # 根据配置文件打包 bundle
 ```
 
 或生成跨平台可运行目录：
 ```bash
-jpc cross-unix
-jpc cross-win
+jpc cross-unix  # for Linux, macOS, FreeBSD...
+jpc cross-win   # for Windows
 ```
 
 ## 命令列表
@@ -63,7 +73,7 @@ jpc cross-win
 
 ## 配置文件说明（jpc.toml）
 
-配置文件是一个简单的 `key = "value"` 格式，所有值必须用双引号包起来。支持变量替换：在 `[VAR]` 中定义变量，然后在其他 section 用 `$NAME$` 引用。
+配置文件是一个简单的 `key = "value"` 格式，所有值必须用双引号包起来。支持变量替换：在 `[VAR]` 中定义变量，然后在其他 section 用 `$VAR$` 引用。
 
 ### `[VAR]`
 
@@ -71,13 +81,13 @@ jpc cross-win
 
 ### `[LINK]`（jlink）
 
-该 section 的每个 `key` 会变成 `--key "value"` 传给 `jlink`。没有值的开关请放在 `default-arg` 中（空格分隔）。
+该 section 的每个 `key` 会变成 `--key "value"` 传给 `jlink`。没有键值的开关请放在 `default-arg` 中（空格分隔）。
 
 常用键：
 - `module-path`：多个路径用系统分隔符连接（Unix `:`，Windows `;`）
 - `add-modules`：逗号分隔的模块列表
 - `output`：输出目录
-- `compress`：0/1/2
+- `compress`：0/1/2 或者在 JDK21 后的：zip-0...9
 - `default-arg`：例如 `--no-header-files --no-man-pages --strip-debug`
 
 ### `[PACKAGE]`（jpackage）
@@ -98,10 +108,10 @@ jpc cross-win
 
 生成一个目录结构：
 ```
-<output>/
-  runtime/   # 复制自 runtime-image
-  target/    # 复制自 input/main-jar
-  run.sh 或 run.bat
+output/
+  |_ runtime/   # 复制自 runtime-image
+  |- target/    # 复制自 input/main-jar
+  |- output-exec
 ```
 
 必填键：
@@ -109,39 +119,62 @@ jpc cross-win
 - `input`
 - `main-jar`
 - `runtime-image`
+- `output-exec`
 
 ## 配置示例
 
 ```toml
 [VAR]
-JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-21-aarch64.jdk/Contents/Home"
-JAR="example-1.0.0.jar"
+JAVA_HOME = "/Library/Java/JavaVirtualMachines/temurin-21-aarch64.jdk/Contents/Home"
+JFX_HOME = "/opt/javafx-jmods-21-macOS-arm64"
+JAR = "example-1.0.0.jar"
 
 [LINK]
-default-arg="--no-header-files --no-man-pages --strip-debug"
-module-path="$JAVA_HOME$/jmods"
-add-modules="java.base,java.desktop"
-compress="2"
-output="runtime"
+default-arg = "--no-header-files --no-man-pages --strip-debug"
+
+# use ':' to separate path on unix-like
+# use ';' to separate path on windows
+# contain VAR between twin "$"
+module-path = "$JAVA_HOME$/jmods:$JFX_HOME$"
+
+# use ',' without space to separate modules
+add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
+# 0,1,2 only
+compress = "2"
+output = "runtime"
 
 [PACKAGE]
-name="example"
-type="app-image"
-main-jar="$JAR$"
-main-class="com.example.demo.Main"
-app-version="1.0.0"
-runtime-image="runtime"
-input="target"
-dest="dist"
-vendor="example.com"
+name = "example"
+
+# general: app-image
+# linux: deb, rpm
+# macos: dmg, pkg
+# windows: exe, msi
+type = "app-image"
+
+main-jar = "$JAR$"
+main-class = "com.example.demo.Main"
+app-version = "1.0.0"
+
+runtime-image = "runtime"
+input = "target"
+dest = "dist"
+
+vendor = "example.com"
+
+# these options are optional
+# description = "Just a Example"
+# copyright = "'1.0.0 Copyright (C) 2024 example.com'"
+# icon = "favicon.png"
+# java-options = "'-Xmx64m -Xmx128m'"
 
 [CROSS]
-output="example-0.1.0-unix"
-input="target"
-main-jar="example-0.1.0.jar"
-runtime-image="$JAVA_HOME$"
+output = "example-0.1.0-linux"
+input = "target"
+main-jar = "example-0.1.0.jar"
+runtime-image = "$JAVA_HOME$"
+
+# `cross-win` cmd automatically appends the `.exe`
+output-exec = "run"
+
 ```
-
-## 许可证
-
-MIT，见 `LICENSE`。
