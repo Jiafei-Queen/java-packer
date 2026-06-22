@@ -186,7 +186,9 @@ output = "example-0.1.0-linux"
 input = "target"
 main-jar = "example-0.1.0.jar"
 runtime-image = "$JAVA_HOME$"
-output-exec = "run.exe"
+
+# `cross-win` cmd automatically appends the `.exe`
+output-exec = "run"
 
 "#
 }
