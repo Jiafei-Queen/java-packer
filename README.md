@@ -1,12 +1,45 @@
 # Java Packer (jpc)
 
-一个用 Rust 写的小工具，负责把 `jlink` / `jpackage` 的常用参数从 `jpc.toml` 读取出来，并按需执行。它不实现新的打包逻辑，只是把你的配置转换成命令行参数，并提供一个快速生成“可运行目录”的 `cross-*` 命令。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Rust 2024](https://img.shields.io/badge/rust-2024-orange.svg)](https://www.rust-lang.org/)
+
+
+由 Rust 编写的 Java 应用打包工具。
 
 ## 适合做什么
 
-- 精简 JRE：把 Java 模块按需裁剪后输出到指定目录。
-- 原生打包：把 JAR + JRE 交给 `jpackage` 生成安装包或 app-image。
-- 快速分发：生成包含 `runtime/`、`target/` 和启动脚本的目录，方便拷贝运行。
+1. 快速为 Java 程序构建绿色目录（cross 功能）
+2. 方便调用 jlink/jpackage 命令裁剪运行时，打包应用
+
+## 快速开始
+
+### 生成配置文件
+```bash
+jpc init        # 生成模板配置文件
+```
+
+### 编辑配置文件
+按照项目实际修改配置文件
+
+### 执行命令
+
+**1. 利用 jlink/jpackage**
+```bash
+jpc link        # 根据配置文件生成裁剪后的 JRE
+jpc package     # 根据配置文件打包 bundle
+```
+
+**2. 快速生成 Java 绿色目录（不需要 jlink/jpackage，快速生成）**
+```bash
+jpc cross-unix  # for Linux, macOS, FreeBSD...
+jpc cross-win   # for Windows
+```
+
+## 为什么选择 jpc？
+
+- 不依赖 Maven/Gradle 构建工具
+- 配置文件跟随项目
+- 方便，快速
 
 ## 依赖
 
@@ -18,7 +51,7 @@
 - Windows 打包 `.msi` 仍需要 WiX Toolset（`jpackage` 的要求）。
 - macOS 打包 `.pkg` / `.dmg` 可能需要开发者证书（`jpackage` 的要求）。
 
-### 对于 cross
+### 对于 cross 功能
 
 （生成绿色 Java 应用目录）
 
@@ -28,8 +61,13 @@
 
 ### 从源码构建
 
+**需求：**
+- 基础 Rust 编译环境
+- `x86_64-pc-windows-gnu` 目标支持
+- Windows 用户需要 Bash 环境（自己复制脚本内容执行也可以）
+
 ```bash
-cargo build --release
+./mach    # 构建脚本
 ```
 
 产物在 `target/release/`（Linux/macOS 为 `jpc`，Windows 为 `jpc.exe`）。
@@ -38,40 +76,8 @@ cargo build --release
 
 Release 页面：<https://github.com/Jiafei-Queen/java-packer/releases>
 
-## 快速开始
 
-1) 生成配置
-```bash
-jpc init  # 生成模板配置文件
-```
-
-2) 编辑 `jpc.ini`
-
-3) 执行
-```bash
-jpc link      # 根据配置文件生成裁剪后的 JRE
-jpc package   # 根据配置文件打包 bundle
-```
-
-或生成跨平台可运行目录：
-```bash
-jpc cross-unix  # for Linux, macOS, FreeBSD...
-jpc cross-win   # for Windows
-```
-
-## 命令列表
-
-- `jpc init` 生成 `jpc.toml` 模板（如果存在会询问是否覆盖）
-- `jpc link` 执行 `jlink`
-- `jpc package` 执行 `jpackage`
-- `jpc cross-unix` 生成 Unix 启动脚本 `run.sh`
-- `jpc cross-win` 生成 Windows 启动脚本 `run.bat`
-- `jpc clean` 删除配置中定义的输出目录
-- `jpc -c <FILE>, --config <FILE>` 指定配置路径（默认 `jpc.toml`）
-- `jpc -q, --quiet` 跳过执行前的确认提示
-- `jpc -h, --help` / `jpc -v, --version`
-
-## 配置文件说明（jpc.toml）
+## 配置文件说明（jpc.ini）
 
 配置文件是一个简单的 `key = "value"` 格式，所有值必须用双引号包起来。支持变量替换：在 `[VAR]` 中定义变量，然后在其他 section 用 `$VAR$` 引用。
 
@@ -120,61 +126,3 @@ output/
 - `main-jar`
 - `runtime-image`
 - `output-exec`
-
-## 配置示例
-
-```toml
-[VAR]
-JAVA_HOME = "/Library/Java/JavaVirtualMachines/temurin-21-aarch64.jdk/Contents/Home"
-JFX_HOME = "/opt/javafx-jmods-21-macOS-arm64"
-JAR = "example-1.0.0.jar"
-
-[LINK]
-default-arg = "--no-header-files --no-man-pages --strip-debug"
-
-# use ':' to separate path on unix-like
-# use ';' to separate path on windows
-# contain VAR between twin "$"
-module-path = "$JAVA_HOME$/jmods:$JFX_HOME$"
-
-# use ',' without space to separate modules
-add-modules = "java.base,javafx.base,javafx.controls,javafx.graphics"
-# 0,1,2 only
-compress = "2"
-output = "runtime"
-
-[PACKAGE]
-name = "example"
-
-# general: app-image
-# linux: deb, rpm
-# macos: dmg, pkg
-# windows: exe, msi
-type = "app-image"
-
-main-jar = "$JAR$"
-main-class = "com.example.demo.Main"
-app-version = "1.0.0"
-
-runtime-image = "runtime"
-input = "target"
-dest = "dist"
-
-vendor = "example.com"
-
-# these options are optional
-# description = "Just a Example"
-# copyright = "'1.0.0 Copyright (C) 2024 example.com'"
-# icon = "favicon.png"
-# java-options = "'-Xmx64m -Xmx128m'"
-
-[CROSS]
-output = "example-0.1.0-linux"
-input = "target"
-main-jar = "example-0.1.0.jar"
-runtime-image = "$JAVA_HOME$"
-
-# `cross-win` cmd automatically appends the `.exe`
-output-exec = "run"
-
-```
