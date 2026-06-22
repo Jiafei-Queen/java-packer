@@ -90,6 +90,7 @@ pub fn cross(toml: &Toml, platform: OS) -> Result<(), String> {
         }
     }
 
+    println!("\nBuild SUCCESS: `{}`", output);
     Ok(())
 }
 

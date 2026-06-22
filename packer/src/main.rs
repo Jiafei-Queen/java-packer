@@ -48,6 +48,7 @@ fn main() {
 
     parse_cmd(command, config).unwrap_or_else(|e| {
         eprintln!("[ERROR]: {}", e);
+        std::process::exit(1);
     })
 }
 

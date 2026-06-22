@@ -24,7 +24,7 @@ pub fn link(toml: Toml) -> Result<(), String>{
         cmd.push(v.to_string());
     }
 
-    Ok(execute("jlink".to_string(), cmd))
+    execute("jlink".to_string(), cmd)
 }
 
 pub fn package(toml: Toml) -> Result<(), String> {
@@ -41,10 +41,10 @@ pub fn package(toml: Toml) -> Result<(), String> {
         cmd.push(v.to_string());
     }
 
-    Ok(execute("jpackage".to_string(), cmd))
+    execute("jpackage".to_string(), cmd)
 }
 
-fn execute(program: String, args: Vec<String>) {
+fn execute(program: String, args: Vec<String>) -> Result<(), String> {
     if QUIET.get() == false {
         println!("[INFO]: It's going to execute command:");
         println!("=============================================================");
@@ -57,8 +57,26 @@ fn execute(program: String, args: Vec<String>) {
         io::stdin().read_line(&mut input).unwrap();
         if input.trim().to_lowercase().starts_with("y") {
             println!("\n[INFO]: working...\n");
-        } else { println!("\n[INFO]: Cancelled.\n"); return; };
+        } else {
+            println!("\n[INFO]: Cancelled.\n");
+            return Ok(());
+        };
     }
 
-    Command::new(program).args(args).status().unwrap();
+    match Command::new(program).args(args).status() {
+        Err(e) => {
+            Err(format!("Failed to exec: {}", e))
+        }
+
+        Ok(status) => {
+            if status.success() {
+                Ok(())
+            } else {
+                match status.code() {
+                    Some(code) => Err(code.to_string()),
+                    None => Err("Failed to exec".to_string())
+                }
+            }
+        }
+    }
 }
