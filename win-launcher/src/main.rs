@@ -29,7 +29,8 @@ fn main() {
     let java_path = exe_dir.join("runtime/bin/java.exe");
 
     let mut cmd = Command::new(java_path.display().to_string());
-    cmd.arg("-jar").arg(&jar_path);
+    cmd.arg("-jar").arg(&jar_path)
+        .args(env::args().skip(1));
 
     #[cfg(target_os = "windows")]
     {
